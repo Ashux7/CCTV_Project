@@ -2,6 +2,7 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <WiFiClientSecure.h>
+#include "secrets.h"
 
 #define irPin             12
 #define PWDN_GPIO_NUM     32
@@ -21,15 +22,15 @@
 #define HREF_GPIO_NUM     23
 #define PCLK_GPIO_NUM     22
 
-const char* ssid = "IIT_Bhilai";
-const char* password = "iitbhilai2023";
-const char* discord_webhook = "https://discord.com/api/webhooks/1478363014175527045/6-O2e2QgeBu2ht4PXbzRjpsT5LwF8o7dcFGX3N3yZ_fOffqYcPTwHOzUk5aSdPM9rJa0";
+const char* ssid = SSID;
+const char* password = PASS;
+const char* discord_webhook = HOOK;
 
 void setup() {
   pinMode(33,OUTPUT); // cam red led
   pinMode(4,OUTPUT); // flashlight
   pinMode(irPin,INPUT_PULLUP); //cam ka gpio pin 12 pr IR ka output lga kr send krenge
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -101,6 +102,7 @@ void sendToDiscord(camera_fb_t *fb) {
   // Send multipart head
   client.print(head);
 
+  digitalWrite(4,HIGH); //flash on
   // Stream the image in small chunks — no extra malloc needed!
   size_t sent = 0;
   const size_t chunkSize = 1024;  // send 1KB at a time
@@ -114,6 +116,8 @@ void sendToDiscord(camera_fb_t *fb) {
     }
     sent += written;
   }
+  digitalWrite(4,LOW); //flash off
+
 
   // Send multipart tail
   client.print(tail);
@@ -134,7 +138,7 @@ void sendToDiscord(camera_fb_t *fb) {
   String statusLine = client.readStringUntil('\n');
   Serial.println("Discord: " + statusLine);
 
-  client.stop();  // close connection and free all socket memory ✅
+  client.stop();  // close connection and free all socket memory 
   Serial.printf("Free heap after send: %d bytes\n", ESP.getFreeHeap());
 }
 
@@ -154,12 +158,19 @@ void clicknsend(){
 }
 
 void loop() {
-  digitalWrite(33,LOW);
-  int objVal = digitalRead(irPin);
-  if(!objVal){
-    digitalWrite(4,HIGH);
-    clicknsend();
-    digitalWrite(4,LOW);
+  // digitalWrite(33,LOW);
+  // int objVal = digitalRead(irPin);
+  // if(!objVal){
+  //   clicknsend();
+  //   delay(5000);
+  // }
+  if (Serial.available()) {
+        String cmd = Serial.readStringUntil('\n');
+        cmd.trim();
+
+        if (cmd == "SNAP") {
+            clicknsend();
+        }
+    }
     delay(5000);
-  }
 }
