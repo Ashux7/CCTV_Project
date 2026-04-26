@@ -30,7 +30,7 @@ void setup() {
   pinMode(33,OUTPUT); // cam red led
   pinMode(4,OUTPUT); // flashlight
   pinMode(irPin,INPUT_PULLUP); //cam ka gpio pin 12 pr IR ka output lga kr send krenge
-  Serial.begin(115200);
+  Serial.begin(9600);
 
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
@@ -102,7 +102,7 @@ void sendToDiscord(camera_fb_t *fb) {
   // Send multipart head
   client.print(head);
 
-  digitalWrite(4,HIGH); //flash on
+  // digitalWrite(4,HIGH); //flash on
   // Stream the image in small chunks — no extra malloc needed!
   size_t sent = 0;
   const size_t chunkSize = 1024;  // send 1KB at a time
@@ -116,7 +116,7 @@ void sendToDiscord(camera_fb_t *fb) {
     }
     sent += written;
   }
-  digitalWrite(4,LOW); //flash off
+  // digitalWrite(4,LOW); //flash off
 
 
   // Send multipart tail
